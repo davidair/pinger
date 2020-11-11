@@ -1,0 +1,9 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth.uid == '9dfa157b-de44-4ba9-b3bd-8b5fd2ef3b00'",
+    "aggregated_pings" : {
+    ".read": true
+    }
+  }
+}

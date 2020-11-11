@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.902
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pinger", "Pinger\Pinger.csproj", "{E076994D-AC78-4240-8430-2A3F46C457DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingerCore", "PingerCore\PingerCore.csproj", "{1B56398F-DA9B-437D-B7F5-057277CE9716}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingerCLI", "PingerCLI\PingerCLI.csproj", "{320AB283-CCA5-47F4-BBAB-3594BB92AE02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherCollector", "WeatherCollector\WeatherCollector.csproj", "{2E74C138-E7DA-4128-9297-C2BD56E3DC8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCLI", "TestCLI\TestCLI.csproj", "{4E8D9088-DF90-4D26-A435-F322047BA415}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingerService", "PingerService\PingerService.csproj", "{82F502E3-70C6-46C8-8165-663B5664FB7B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E076994D-AC78-4240-8430-2A3F46C457DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E076994D-AC78-4240-8430-2A3F46C457DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E076994D-AC78-4240-8430-2A3F46C457DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E076994D-AC78-4240-8430-2A3F46C457DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B56398F-DA9B-437D-B7F5-057277CE9716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B56398F-DA9B-437D-B7F5-057277CE9716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B56398F-DA9B-437D-B7F5-057277CE9716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B56398F-DA9B-437D-B7F5-057277CE9716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{320AB283-CCA5-47F4-BBAB-3594BB92AE02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{320AB283-CCA5-47F4-BBAB-3594BB92AE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{320AB283-CCA5-47F4-BBAB-3594BB92AE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{320AB283-CCA5-47F4-BBAB-3594BB92AE02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E74C138-E7DA-4128-9297-C2BD56E3DC8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E74C138-E7DA-4128-9297-C2BD56E3DC8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E74C138-E7DA-4128-9297-C2BD56E3DC8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E74C138-E7DA-4128-9297-C2BD56E3DC8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E8D9088-DF90-4D26-A435-F322047BA415}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E8D9088-DF90-4D26-A435-F322047BA415}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E8D9088-DF90-4D26-A435-F322047BA415}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E8D9088-DF90-4D26-A435-F322047BA415}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82F502E3-70C6-46C8-8165-663B5664FB7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82F502E3-70C6-46C8-8165-663B5664FB7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82F502E3-70C6-46C8-8165-663B5664FB7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82F502E3-70C6-46C8-8165-663B5664FB7B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {096C3E39-78FC-4A04-A5E8-58F39D6247DB}
+	EndGlobalSection
+EndGlobal
