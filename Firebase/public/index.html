@@ -64,8 +64,15 @@ limitations under the License.
     <script src="https://unpkg.com/js-datepicker"></script>
 
     <script>
+      const TenMinutesMillis = 1000 * 60 * 10;
+      const OneMinuteMillis = 1000 * 60;
+
       function getDateString(date) {
         return date.toISOString().split('T')[0];
+      }
+
+      function updateLocation(updatedDate, interval) {
+        window.location.search = "date=" + getDateString(updatedDate) + "&interval=" + (interval == TenMinutesMillis ? "10" : "1");
       }
 
       document.addEventListener('DOMContentLoaded', function() {
@@ -80,36 +87,36 @@ limitations under the License.
             'performance',
           ].filter(feature => typeof app[feature] === 'function');
 
-          let date = getDateString(new Date(Date.now()));
-
-          document.querySelector('input[name="previousDate"]').addEventListener('click', function() {
-            updatedDate = new Date(Date.parse(date + "T00:00:00"));
-            updatedDate.setDate(updatedDate.getDate() - 1);
-            window.location.search = "date=" + getDateString(updatedDate);
-          });
-
-          document.querySelector('input[name="nextDate"]').addEventListener('click', function() {
-            updatedDate = new Date(Date.parse(date + "T00:00:00"));
-            updatedDate.setDate(updatedDate.getDate() + 1);
-            window.location.search = "date=" + getDateString(updatedDate);
-          });
+          let yesterday = new Date(Date.now());
+          yesterday.setDate(yesterday.getDate() - 1);
+          let date = getDateString(yesterday);
 
           const urlParams = new URLSearchParams(window.location.search);
           if (urlParams.has('date')) {
             date = urlParams.get('date');
           } else {
-            window.location.search = "date=" + date;
+            updateLocation(yesterday, OneMinuteMillis);
           }
 
-          const TenMinutesMillis = 1000 * 60 * 10;
-          const OneMinuteMillis = 1000 * 60;
-
-          let interval = TenMinutesMillis;
+          let interval = OneMinuteMillis;
           if (urlParams.has('interval')) {
-            if (urlParams.get('interval') == '1') {
-              interval = OneMinuteMillis;
+            if (urlParams.get('interval') == '10') {
+              interval = TenMinutesMillis;
             }
-          }           
+          }
+
+          document.querySelector('input[name="previousDate"]').addEventListener('click', function() {
+            updatedDate = new Date(Date.parse(date + "T00:00:00"));
+            updatedDate.setDate(updatedDate.getDate() - 1);
+            updateLocation(updatedDate, interval);
+          });
+
+          document.querySelector('input[name="nextDate"]').addEventListener('click', function() {
+            updatedDate = new Date(Date.parse(date + "T00:00:00"));
+            updatedDate.setDate(updatedDate.getDate() + 1);
+            updateLocation(updatedDate, interval);
+          });
+
           
           firebase.database().ref('/aggregated_pings/' + interval + '/' + date).on('value', snapshot => { 
             let data = snapshot.val();
@@ -144,8 +151,7 @@ limitations under the License.
           const picker = datepicker('input[name="dateTimePicker"]', {
             dateSelected: new Date(Date.parse(date + "T00:00:00")),
             onHide: instance => {
-              let date = getDateString(instance.dateSelected);
-              window.location.search = "date=" + date;
+              updateLocation(instance.dateSelected, interval);
             }
           });
         } catch (e) {
