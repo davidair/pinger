@@ -32,6 +32,10 @@ limitations under the License.
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
 
+    <!-- https://github.com/qodesmith/datepicker -->
+    <link rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css">
+
+    <link rel="stylesheet" href="/third_party/crossxcell99/dtsel/dtsel.css" />
 
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
@@ -49,10 +53,23 @@ limitations under the License.
     </style>
   </head>
   <body>
+    <div>
+      <input type="button" value="🠈" name="previousDate">
+      <input name="dateTimePicker" />
+      <input type="button" value="🠊" name="nextDate">
+    </div>
     <canvas id="myChart" width="400" height="200"></canvas>
 
+    <!-- https://github.com/qodesmith/datepicker -->
+    <script src="https://unpkg.com/js-datepicker"></script>
+
     <script>
+      function getDateString(date) {
+        return date.toISOString().split('T')[0];
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
+
         const loadEl = document.querySelector('#load');
 
         try {
@@ -63,7 +80,19 @@ limitations under the License.
             'performance',
           ].filter(feature => typeof app[feature] === 'function');
 
-          let date = new Date(Date.now()).toISOString().split('T')[0];
+          let date = getDateString(new Date(Date.now()));
+
+          document.querySelector('input[name="previousDate"]').addEventListener('click', function() {
+            updatedDate = new Date(Date.parse(date + "T00:00:00"));
+            updatedDate.setDate(updatedDate.getDate() - 1);
+            window.location.search = "date=" + getDateString(updatedDate);
+          });
+
+          document.querySelector('input[name="nextDate"]').addEventListener('click', function() {
+            updatedDate = new Date(Date.parse(date + "T00:00:00"));
+            updatedDate.setDate(updatedDate.getDate() + 1);
+            window.location.search = "date=" + getDateString(updatedDate);
+          });
 
           const urlParams = new URLSearchParams(window.location.search);
           if (urlParams.has('date')) {
@@ -112,7 +141,13 @@ limitations under the License.
             });
           });
 
-
+          const picker = datepicker('input[name="dateTimePicker"]', {
+            dateSelected: new Date(Date.parse(date + "T00:00:00")),
+            onHide: instance => {
+              let date = getDateString(instance.dateSelected);
+              window.location.search = "date=" + date;
+            }
+          });
         } catch (e) {
           console.error(e);
           loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
