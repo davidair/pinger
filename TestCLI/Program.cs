@@ -104,8 +104,8 @@ namespace TestCLI
         static void MainAsync(string[] args)
         {
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"d:\Pinger\pinger-service-account-key.json");
-            FirebaseProjectName = File.ReadAllText(@"d:\Pinger\firebase-project-name.txt").Trim();
-            FirebaseDatabaseUrl = String.Format("https://{0}.firebaseio.com", FirebaseProjectName);
+            FirebaseDatabaseUrl = String.Format("https://{0}.firebaseio.com",
+                File.ReadAllText(@"d:\Pinger\firebase-project-name.txt").Trim());
             FirebaseApp.Create(new AppOptions()
             {
                 Credential = GoogleCredential.GetApplicationDefault(),

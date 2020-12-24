@@ -126,10 +126,14 @@ namespace HitronCLI
                 System.Net.ServicePointManager.Expect100Continue = false;
                 long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-                foreach (var endpoint in new[] {"SysInfo", "DsInfo", "UsInfo", "DsOfdm", "UsOfdm" })
+                foreach (var endpoint in HitronStat.StatMapping.Keys)
                 {
                     JObject stats = GetStats(webClient, endpoint, timestamp);
-                    Console.WriteLine(stats.ToString());
+                    JArray list = (JArray)stats["Freq_List"];
+                    foreach (JObject entry in list)
+                    {
+                        HitronStat stat = HitronStat.FromJObject(endpoint, entry);
+                    }
                 }
             }
         }
