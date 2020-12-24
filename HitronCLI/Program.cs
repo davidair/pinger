@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security;
-using System.Text;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using System.Net;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace HitronCLI
 {
@@ -34,7 +30,8 @@ namespace HitronCLI
             // Storing SecureString values in ProtectedData: https://stackoverflow.com/a/54032680/497403
             // Comparing SecureString values: https://stackoverflow.com/q/4502676/497403
             StringBuilder password = new StringBuilder();
-            while (true) {
+            while (true)
+            {
                 var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
                 {
@@ -42,7 +39,7 @@ namespace HitronCLI
                 }
                 password.Append(key.KeyChar);
             }
-            
+
             return password.ToString();
         }
         static void SetPassword()
@@ -65,35 +62,74 @@ namespace HitronCLI
             Console.WriteLine("Password saved!");
         }
 
-        static void CollectStats()
+        static string SignIn(WebClient webClient)
         {
             if (!File.Exists(GetPasswordPath()))
             {
                 Console.WriteLine("No password was saved - please run the tool with the 'set_password' command first");
-                return;
+                return null;
             }
 
             byte[] encrypted = File.ReadAllBytes(GetPasswordPath());
             byte[] decrypted = ProtectedData.Unprotect(encrypted, AdditionalEntropy, DataProtectionScope.CurrentUser);
-            using (WebClient client = new WebClient())
+
+            webClient.Headers.Add("content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+            string data = String.Format("model=%7B%22username%22%3A%22cusadmin%22%2C%22password%22%3A%22{0}%22%7D", Encoding.UTF8.GetString(decrypted));
+            string result = webClient.UploadString("http://192.168.0.1/1/Device/Users/Login", data);
+            JObject resultObject = (JObject)JsonConvert.DeserializeObject(result);
+            if (!resultObject.ContainsKey("result") || resultObject["result"].ToString() != "success")
             {
-                System.Net.ServicePointManager.Expect100Continue = false;
-                client.Headers.Add("content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-                string data = String.Format("model=%7B%22username%22%3A%22cusadmin%22%2C%22password%22%3A%22{0}%22%7D", Encoding.UTF8.GetString(decrypted));
-                string result = client.UploadString("http://192.168.0.1/1/Device/Users/Login", data);
-                JObject resultObject = (JObject)JsonConvert.DeserializeObject(result);
-                if (!resultObject.ContainsKey("result") || resultObject["result"].ToString() != "success")
+                Console.WriteLine("Failed to login into the modem: " + result);
+                return null;
+            }
+
+            return webClient.ResponseHeaders[HttpResponseHeader.SetCookie];
+        }
+
+        static JObject GetStats(WebClient webClient, string endpoint, long timestamp)
+        {
+            for (int retry = 0; retry < 2; retry++)
+            {
+                string url = String.Format("http://192.168.0.1/1/Device/CM/{0}?_={1}", endpoint, timestamp);
+                string rawResult = webClient.DownloadString(url);
+                JObject result = null;
+                if (!rawResult.StartsWith("<!DOCTYPE html>"))
                 {
-                    Console.WriteLine("Failed to login into the modem: " + result);
-                    return;
+                    try
+                    {
+                        result = (JObject)JsonConvert.DeserializeObject(rawResult);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                if (result != null)
+                {
+                    return result;
+                }
+                string cookie = SignIn(webClient);
+                if (cookie == null)
+                {
+                    return null;
                 }
 
-                client.Headers.Add(HttpRequestHeader.Cookie, client.ResponseHeaders[HttpResponseHeader.SetCookie]);
+                webClient.Headers.Add(HttpRequestHeader.Cookie, cookie);
+            }
+            return null;
+        }
 
-                long millis = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        static void CollectStats()
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                System.Net.ServicePointManager.Expect100Continue = false;
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
                 foreach (var endpoint in new[] {"SysInfo", "DsInfo", "UsInfo", "DsOfdm", "UsOfdm" })
                 {
-                    Console.WriteLine(client.DownloadString(String.Format("http://192.168.0.1/1/Device/CM/{0}?_={1}", endpoint, millis)));
+                    JObject stats = GetStats(webClient, endpoint, timestamp);
+                    Console.WriteLine(stats.ToString());
                 }
             }
         }
