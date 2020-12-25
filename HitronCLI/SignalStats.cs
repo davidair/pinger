@@ -181,15 +181,15 @@ namespace HitronCLI
         {
             return new DownstreamStats()
             {
-                PortId = entry["portId"].Value<int>(),
-                Frequency = entry["frequency"].Value<long>(),
+                PortId = SafeParse<int>(entry, "portId"),
+                Frequency = SafeParse<long>(entry, "frequency"),
                 Modulation = entry["modulation"].Value<string>(),
-                SignalStrength = entry["signalStrength"].Value<double>(),
-                SignalNoiseRatio = entry["snr"].Value<double>(),
-                ChannelId = entry["channelId"].Value<int>(),
-                DownstreamOctets = entry["dsoctets"].Value<long>(),
-                Correct = entry["correcteds"].Value<int>(),
-                Uncorrect = entry["uncorrect"].Value<int>(),
+                SignalStrength = SafeParse<double>(entry, "signalStrength"),
+                SignalNoiseRatio = SafeParse<double>(entry, "snr"),
+                ChannelId = SafeParse<int>(entry, "channelId"),
+                DownstreamOctets = SafeParse<long>(entry, "dsoctets"),
+                Correct = SafeParse<int>(entry, "correcteds"),
+                Uncorrect = SafeParse<int>(entry, "uncorrect"),
             };
         }
     }
@@ -240,12 +240,12 @@ namespace HitronCLI
         {
             return new UpstreamStats()
             {
-                PortId = entry["portId"].Value<int>(),
-                Frequency = entry["frequency"].Value<long>(),
+                PortId = SafeParse<int>(entry, "portId"),
+                Frequency = SafeParse<long>(entry, "frequency"),
                 ModulationType = entry["modulationType"].Value<string>(),
                 SignalStrength = SafeParse<double>(entry, "signalStrength"),
-                ChannelId = entry["channelId"].Value<int>(),
-                Bandwidth = entry["bandwidth"].Value<long>(),
+                ChannelId = SafeParse<int>(entry, "channelId"),
+                Bandwidth = SafeParse<long>(entry, "bandwidth"),
             };
         }
     }
@@ -300,7 +300,7 @@ namespace HitronCLI
         {
             return new OFDMDownstreamStats()
             {
-                Receive = entry["receive"].Value<int>(),
+                Receive = SafeParse<int>(entry, "receive"),
                 FftType = entry["ffttype"].Value<string>(),
                 SubcarrierFrequency = SafeParse<long>(entry, "Subcarr0freqFreq"),
                 PlcLocked = GetBoolValue(entry, "plclock"),
@@ -365,13 +365,13 @@ namespace HitronCLI
         {
             return new OFDMUpstreamStats()
             {
-                ChannelIndex = entry["uschindex"].Value<int>(),
+                ChannelIndex = SafeParse<int>(entry, "uschindex"),
                 State = entry["state"].Value<string>().Trim(),
-                LinDigitalAtt = entry["digAtten"].Value<double>(),
-                DigitalAtt = entry["digAttenBo"].Value<double>(),
-                ChannelBw = entry["channelBw"].Value<double>(),
-                ReportPower = entry["repPower"].Value<double>(),
-                ReportPower1_6 = entry["repPower1_6"].Value<double>(),
+                LinDigitalAtt = SafeParse<double>(entry, "digAtten"),
+                DigitalAtt = SafeParse<double>(entry, "digAttenBo"),
+                ChannelBw = SafeParse<double>(entry, "channelBw"),
+                ReportPower = SafeParse<double>(entry, "repPower"),
+                ReportPower1_6 = SafeParse<double>(entry, "repPower1_6"),
                 FftSize = entry["fftVal"].Value<string>().Trim(),
             };
         }
