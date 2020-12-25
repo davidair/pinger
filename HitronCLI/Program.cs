@@ -1,16 +1,19 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 
 namespace HitronCLI
 {
     class Program
     {
         static byte[] AdditionalEntropy = { 121, 231, 14, 137, 146, 122 };
+        static int RefreshIntervalSeconds = 10;
 
         // %userprofile%\AppData\Roaming\HitronCLI\encrypted_credentials.dat
         private static string GetPasswordPath()
@@ -121,19 +124,60 @@ namespace HitronCLI
 
         static void CollectStats()
         {
+            Dictionary<string, List<HitronStat>> allStats = new Dictionary<string, List<HitronStat>>();
+
             using (WebClient webClient = new WebClient())
             {
                 System.Net.ServicePointManager.Expect100Continue = false;
-                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-                foreach (var endpoint in HitronStat.StatMapping.Keys)
+
+                while (true)
                 {
-                    JObject stats = GetStats(webClient, endpoint, timestamp);
-                    JArray list = (JArray)stats["Freq_List"];
-                    foreach (JObject entry in list)
+                    long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                    foreach (var endpoint in HitronStat.StatMapping.Keys)
                     {
-                        HitronStat stat = HitronStat.FromJObject(endpoint, entry);
+                        List<HitronStat> currentStatList = new List<HitronStat>();
+                        JObject stats = GetStats(webClient, endpoint, timestamp);
+                        JArray list = (JArray)stats["Freq_List"];
+                        foreach (JObject entry in list)
+                        {
+                            currentStatList.Add(HitronStat.FromJObject(endpoint, entry));
+                        }
+
+                        if (!allStats.ContainsKey(endpoint))
+                        {
+                            allStats[endpoint] = currentStatList;
+                            HitronStat.PrintList(currentStatList);
+                            continue;
+                        }
+
+                        bool hasChanges = false;
+                        List<HitronStat> previousStatList = allStats[endpoint];
+                        if (previousStatList.Count != currentStatList.Count)
+                        {
+                            Console.WriteLine("Warning: stat length changed");
+                            HitronStat.PrintList(currentStatList);
+                            continue;
+                        }
+                        for (int i = 0; i < previousStatList.Count; i++)
+                        {
+                            HitronStat stat1 = previousStatList[i];
+                            HitronStat stat2 = currentStatList[i];
+                            if (!stat1.Equals(stat2))
+                            {
+                                hasChanges = true;
+                            }
+                        }
+                        if (hasChanges)
+                        {
+                            Console.WriteLine("Changes detected for " + endpoint);
+                            HitronStat.PrintList(currentStatList);
+                            allStats[endpoint] = currentStatList;
+                        }
                     }
+
+                    Thread.Sleep(1000 * RefreshIntervalSeconds);
                 }
             }
         }

@@ -44,6 +44,8 @@ namespace HitronCLI
             return mapping;
         }
 
+        private string _originalSerialization;
+
         public String GetEndpoint()
         {
             return HitronStat.ReverseStatMapping[this.GetType()];
@@ -52,12 +54,28 @@ namespace HitronCLI
         public static HitronStat FromJObject(string endpoint, JObject entry)
         {
             Type type = HitronStat.StatMapping[endpoint];
-            return (HitronStat)type.GetMethod("FromJObject").Invoke(null, BindingFlags.Static, null, new object[] { entry }, null);
+            HitronStat stat = (HitronStat)type.GetMethod("FromJObject").Invoke(null, BindingFlags.Static, null, new object[] { entry }, null);
+            stat._originalSerialization = entry.ToString();
+            return stat;
         }
-    }
 
-    class Helper
-    {
+        public static void PrintList(List<HitronStat> list)
+        {
+            bool firstRow = true;
+            foreach (var entry in list)
+            {
+                if (firstRow)
+                {
+                    entry.PrintHeader();
+                    firstRow = false;
+                }
+                entry.PrintStat();
+            }
+        }
+
+        public abstract void PrintStat();
+        public abstract void PrintHeader();
+
         public static T SafeParse<T>(JObject entry, string key) where T : IConvertible
         {
             if (!entry.ContainsKey(key))
@@ -81,7 +99,24 @@ namespace HitronCLI
         {
             return entry[key].Value<String>().Equals("YES", StringComparison.InvariantCultureIgnoreCase);
         }
+
+        public override bool Equals(object obj)
+        {
+            HitronStat other = obj as HitronStat;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this._originalSerialization == other._originalSerialization;
+        }
+
+        public override int GetHashCode()
+        {
+            return this._originalSerialization.GetHashCode();
+        }
     }
+
     /// <summary>
     /// http://192.168.0.1/1/Device/CM/DsInfo
     /// </summary>
@@ -108,7 +143,7 @@ namespace HitronCLI
         /// <summary>
         /// Signal noise ratio (dB)
         /// </summary>
-        public double SignalNoiseRation { get; set; }
+        public double SignalNoiseRatio { get; set; }
         /// <summary>
         /// Channel ID
         /// </summary>
@@ -120,6 +155,16 @@ namespace HitronCLI
         public int Correct { get; set; }
         public int Uncorrect { get; set; }
 
+        public override void PrintHeader()
+        {
+            Console.WriteLine("Port ID,Frequency (MHz),Modulation,Signal strength (dBmV),Signal noise ratio (dB),Channel ID,Downstream Octets,Correct,Uncorrect");
+        }
+        
+        public override void PrintStat()
+        {
+            Console.WriteLine($"{PortId},{Frequency},{Modulation},{SignalStrength},{SignalNoiseRatio},{ChannelId},{DownstreamOctets},{Correct},{Uncorrect}");
+        }
+
         public static DownstreamStats FromJObject(JObject entry)
         {
             return new DownstreamStats()
@@ -128,7 +173,7 @@ namespace HitronCLI
                 Frequency = entry["frequency"].Value<long>(),
                 Modulation = entry["modulation"].Value<string>(),
                 SignalStrength = entry["signalStrength"].Value<double>(),
-                SignalNoiseRation = entry["snr"].Value<double>(),
+                SignalNoiseRatio = entry["snr"].Value<double>(),
                 ChannelId = entry["channelId"].Value<int>(),
                 DownstreamOctets = entry["dsoctets"].Value<long>(),
                 Correct = entry["correcteds"].Value<int>(),
@@ -169,6 +214,16 @@ namespace HitronCLI
         /// </summary>
         public long Bandwidth { get; set; }
 
+        public override void PrintHeader()
+        {
+            Console.WriteLine("Port ID,Frequency (MHz),Modulation,Signal strength (dBmV),Channel ID,Bandwidth");
+        }
+
+        public override void PrintStat()
+        {
+            Console.WriteLine($"{PortId},{Frequency},{ModulationType},{SignalStrength},{ChannelId},{Bandwidth}");
+        }
+
         public static UpstreamStats FromJObject(JObject entry)
         {
             return new UpstreamStats()
@@ -176,7 +231,7 @@ namespace HitronCLI
                 PortId = entry["portId"].Value<int>(),
                 Frequency = entry["frequency"].Value<long>(),
                 ModulationType = entry["modulationType"].Value<string>(),
-                SignalStrength = Helper.SafeParse<double>(entry, "signalStrength"),
+                SignalStrength = SafeParse<double>(entry, "signalStrength"),
                 ChannelId = entry["channelId"].Value<int>(),
                 Bandwidth = entry["bandwidth"].Value<long>(),
             };
@@ -199,7 +254,7 @@ namespace HitronCLI
         /// </summary>
         public string FftType { get; set; }
         /// <summary>
-        /// Subcarr 0 Frequency(MHz)
+        /// Subcarr 0 Frequency (MHz)
         /// </summary>
         public long SubcarrierFrequency { get; set; }
         /// <summary>
@@ -219,17 +274,27 @@ namespace HitronCLI
         /// </summary>
         public double PlcPower { get; set; }
 
+        public override void PrintHeader()
+        {
+            Console.WriteLine("Receiver,FFT type,Subcarr 0 Frequency (MHz),PLC locked,NCP locked,MDC1 locked,PLC power(dBmv)");
+        }
+
+        public override void PrintStat()
+        {
+            Console.WriteLine($"{Receive},{FftType},{SubcarrierFrequency},{PlcLocked},{NcpLocked},{MdcLocked},{PlcPower}");
+        }
+
         public static OFDMDownstreamStats FromJObject(JObject entry)
         {
             return new OFDMDownstreamStats()
             {
                 Receive = entry["receive"].Value<int>(),
                 FftType = entry["ffttype"].Value<string>(),
-                SubcarrierFrequency = Helper.SafeParse<long>(entry, "Subcarr0freqFreq"),
-                PlcLocked = Helper.GetBoolValue(entry, "plclock"),
-                NcpLocked = Helper.GetBoolValue(entry, "ncplock"),
-                MdcLocked = Helper.GetBoolValue(entry, "mdc1lock"),
-                PlcPower = Helper.SafeParse<double>(entry, "plcpower")
+                SubcarrierFrequency = SafeParse<long>(entry, "Subcarr0freqFreq"),
+                PlcLocked = GetBoolValue(entry, "plclock"),
+                NcpLocked = GetBoolValue(entry, "ncplock"),
+                MdcLocked = GetBoolValue(entry, "mdc1lock"),
+                PlcPower = SafeParse<double>(entry, "plcpower")
             };
         }
     }
@@ -241,14 +306,48 @@ namespace HitronCLI
     {
         public static string Endpoint = "UsOfdm";
 
+        /// <summary>
+        /// Channel Index
+        /// </summary>
         public int ChannelIndex { get; set; }
+        /// <summary>
+        /// State
+        /// </summary>
         public string State { get; set; }
+        /// <summary>
+        /// lin Digital Att
+        /// </summary>
         public double LinDigitalAtt { get; set; }
+        /// <summary>
+        /// Digital Att
+        /// </summary>
         public double DigitalAtt { get; set; }
+        /// <summary>
+        /// BW (sc's*fft)
+        /// </summary>
         public double ChannelBw { get; set; }
+        /// <summary>
+        /// Report Power
+        /// </summary>
         public double ReportPower { get; set; }
+        /// <summary>
+        /// Report Power1_6
+        /// </summary>
         public double ReportPower1_6 { get; set; }
+        /// <summary>
+        /// FFT Size
+        /// </summary>
         public string FftSize { get; set; }
+
+        public override void PrintHeader()
+        {
+            Console.WriteLine("Channel Index,State,lin Digital Att,Digital Att,BW (sc's*fft),Report Power,Report Power1_6,FFT Size");
+        }
+
+        public override void PrintStat()
+        {
+            Console.WriteLine($"{ChannelIndex},{State},{LinDigitalAtt},{DigitalAtt},{ChannelBw},{ReportPower},{ReportPower1_6},{FftSize}");
+        }
 
         public static OFDMUpstreamStats FromJObject(JObject entry)
         {
