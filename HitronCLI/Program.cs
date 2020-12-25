@@ -130,10 +130,11 @@ namespace HitronCLI
             {
                 System.Net.ServicePointManager.Expect100Continue = false;
 
-
                 while (true)
                 {
                     long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                    Console.WriteLine("Fetching modem stats at " + DateTime.Now + "...");
 
                     foreach (var endpoint in HitronStat.StatMapping.Keys)
                     {
@@ -152,7 +153,8 @@ namespace HitronCLI
                             continue;
                         }
 
-                        bool hasChanges = false;
+                        List<Tuple<HitronStat, HitronStat>> changes = new List<Tuple<HitronStat, HitronStat>>();
+
                         List<HitronStat> previousStatList = allStats[endpoint];
                         if (previousStatList.Count != currentStatList.Count)
                         {
@@ -166,13 +168,18 @@ namespace HitronCLI
                             HitronStat stat2 = currentStatList[i];
                             if (!stat1.Equals(stat2))
                             {
-                                hasChanges = true;
+                                changes.Add(new Tuple<HitronStat, HitronStat>(stat1, stat2));
                             }
                         }
-                        if (hasChanges)
+                        if (changes.Count > 0)
                         {
                             Console.WriteLine("Changes detected for " + endpoint);
-                            HitronStat.PrintList(currentStatList);
+                            foreach(var change in changes)
+                            {
+                                change.Item1.PrintHeader();
+                                change.Item1.PrintStat();
+                                change.Item2.PrintStat();
+                            }
                             allStats[endpoint] = currentStatList;
                         }
                     }
